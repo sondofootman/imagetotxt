@@ -35,11 +35,21 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-3xl">
+        <!-- Home Button -->
+        <div class="mb-8 text-center">
+            <a href="index.html" class="group bg-gradient-to-br from-green-400 to-green-600 text-white py-4 px-6 rounded-2xl shadow-lg flex flex-col items-center justify-center hover:scale-105 transition transform">
+                <i class="fas fa-home text-3xl mb-2"></i>
+                <span class="font-semibold text-lg">Home</span>
+            </a>
+        </div>
+
+        <!-- Heading Section -->
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">Image to Text Converter</h1>
             <p class="text-gray-600">Extract text from images using OCR technology</p>
         </div>
 
+        <!-- Upload Section -->
         <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8">
             <div id="uploadContainer" class="text-center">
                 <div id="dropzone" class="dropzone rounded-lg p-8 mb-4 cursor-pointer">
@@ -102,6 +112,7 @@
             </div>
         </div>
 
+        <!-- How To Use Section -->
         <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
             <h3 class="text-lg font-medium text-gray-700 mb-3">How to use</h3>
             <ul class="space-y-3 text-gray-600">
@@ -190,15 +201,9 @@
                 processingContainer.classList.remove('hidden');
                 
                 Tesseract.recognize(
-
-                file,
-                'jpn',
-    //'afr+amh+ara+asm+aze+bel+ben+bod+bos+bul+cat+ceb+ces+chi_sim+chi_tra+chr+cym+dan+deu+div+dzo+ell+eng+enm+epo+est+eus+fas+fin+fra+frk+frm+glg+grc+guj+hat+heb+hin+hrv+hun+iku+ind+isl+ita+jav+jpn+kan+kat+kaz+khm+kir+kor+kur+lao+lat+lav+lit+mal+mar+mkd+mlt+mon+msa+mya+nep+nld+nor+ori+pan+pol+por+pus+ron+rus+san+sin+slk+slv+snd+spa+spa_old+sqi+srp+srp_latn+sun+swa+swe+syc+tam+tat+tel+tgk+tha+tir+ton+tur+uig+ukr+urd+uzb+vie+yid',
-    {
-
-                   // file,
-                   // 'eng+chi_sim+chi_tra+jpn+kor', // Support English, Chinese, Japanese, Korean
-                  //  {
+                    file,
+                    'jpn',
+                    {
                         logger: m => {
                             if (m.status === 'recognizing text') {
                                 progressBar.style.width = `${Math.round(m.progress * 100)}%`;
