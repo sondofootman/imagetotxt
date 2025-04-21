@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to Text Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dropzone {
+            border: 2px dashed #9CA3AF;
+            transition: all 0.3s ease;
+        }
+        .dropzone.active {
+            border-color: #3B82F6;
+            background-color: #EFF6FF;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        #resultText {
+            min-height: 150px;
+        }
+        .copy-btn {
+            transition: all 0.2s ease;
+        }
+        .copy-btn:hover {
+            transform: scale(1.05);
+        }
+        .copy-btn.copied {
+            background-color: #10B981 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-3xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Image to Text Converter</h1>
+            <p class="text-gray-600">Extract text from images using OCR technology</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8">
+            <div id="uploadContainer" class="text-center">
+                <div id="dropzone" class="dropzone rounded-lg p-8 mb-4 cursor-pointer">
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <div class="p-4 bg-blue-50 rounded-full">
+                            <i class="fas fa-image text-blue-500 text-3xl"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-700">Drag & drop your image here</h3>
+                        <p class="text-gray-500 text-sm">or click to browse files</p>
+                        <input type="file" id="fileInput" class="hidden" accept="image/*">
+                        <button id="selectFileBtn" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+                            Select Image
+                        </button>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500">Supported formats: JPG, PNG, BMP, WEBP</p>
+            </div>
+
+            <div id="processingContainer" class="hidden text-center">
+                <div class="animate-pulse mb-6">
+                    <div class="p-4 bg-blue-50 rounded-full inline-block">
+                        <i class="fas fa-spinner fa-spin text-blue-500 text-3xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-medium text-gray-700 mb-2">Processing your image...</h3>
+                <p class="text-gray-500 mb-4">This may take a few moments</p>
+                
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                    <div id="progressBar" class="progress-bar bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+                
+                <div id="progressText" class="text-sm text-gray-600">Initializing...</div>
+            </div>
+
+            <div id="resultContainer" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-700">Extracted Text</h3>
+                    <button id="copyBtn" class="copy-btn px-3 py-1 bg-blue-500 text-white rounded-md text-sm flex items-center">
+                        <i class="fas fa-copy mr-1"></i> Copy Text
+                    </button>
+                </div>
+                
+                <div class="relative">
+                    <div id="resultText" class="bg-gray-50 p-4 rounded-md border border-gray-200 whitespace-pre-wrap"></div>
+                    <div id="emptyResult" class="hidden absolute inset-0 flex items-center justify-center text-gray-400">
+                        No text could be extracted from this image
+                    </div>
+                </div>
+                
+                <div class="mt-4 flex justify-between">
+                    <button id="newImageBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition">
+                        <i class="fas fa-redo mr-1"></i> Process Another Image
+                    </button>
+                    <div class="flex space-x-2">
+                        <button id="downloadTxtBtn" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition">
+                            <i class="fas fa-download mr-1"></i> Download as TXT
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+            <h3 class="text-lg font-medium text-gray-700 mb-3">How to use</h3>
+            <ul class="space-y-3 text-gray-600">
+                <li class="flex items-start">
+                    <span class="bg-blue-100 text-blue-600 rounded-full p-1 mr-2">
+                        <i class="fas fa-upload text-xs"></i>
+                    </span>
+                    <span>Upload an image containing text (screenshot, photo, scan, etc.)</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="bg-blue-100 text-blue-600 rounded-full p-1 mr-2">
+                        <i class="fas fa-spinner text-xs"></i>
+                    </span>
+                    <span>Wait a few seconds while we process your image</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="bg-blue-100 text-blue-600 rounded-full p-1 mr-2">
+                        <i class="fas fa-copy text-xs"></i>
+                    </span>
+                    <span>Copy the extracted text with one click</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const fileInput = document.getElementById('fileInput');
+            const selectFileBtn = document.getElementById('selectFileBtn');
+            const dropzone = document.getElementById('dropzone');
+            const uploadContainer = document.getElementById('uploadContainer');
+            const processingContainer = document.getElementById('processingContainer');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultText = document.getElementById('resultText');
+            const emptyResult = document.getElementById('emptyResult');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const copyBtn = document.getElementById('copyBtn');
+            const newImageBtn = document.getElementById('newImageBtn');
+            const downloadTxtBtn = document.getElementById('downloadTxtBtn');
+
+            // Event listeners
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileSelect);
+            dropzone.addEventListener('click', () => fileInput.click());
+            dropzone.addEventListener('dragover', handleDragOver);
+            dropzone.addEventListener('dragleave', handleDragLeave);
+            dropzone.addEventListener('drop', handleDrop);
+            copyBtn.addEventListener('click', copyToClipboard);
+            newImageBtn.addEventListener('click', resetForm);
+            downloadTxtBtn.addEventListener('click', downloadAsTxt);
+
+            // Handle file selection
+            function handleFileSelect(e) {
+                const file = e.target.files ? e.target.files[0] : e.dataTransfer.files[0];
+                if (!file) return;
+                
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file');
+                    return;
+                }
+                
+                processImage(file);
+            }
+
+            // Drag and drop handlers
+            function handleDragOver(e) {
+                e.preventDefault();
+                dropzone.classList.add('active');
+            }
+
+            function handleDragLeave() {
+                dropzone.classList.remove('active');
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                dropzone.classList.remove('active');
+                handleFileSelect(e);
+            }
+
+            // Process image with Tesseract
+            function processImage(file) {
+                uploadContainer.classList.add('hidden');
+                processingContainer.classList.remove('hidden');
+                
+                Tesseract.recognize(
+
+                file,
+                'jpn',
+    //'afr+amh+ara+asm+aze+bel+ben+bod+bos+bul+cat+ceb+ces+chi_sim+chi_tra+chr+cym+dan+deu+div+dzo+ell+eng+enm+epo+est+eus+fas+fin+fra+frk+frm+glg+grc+guj+hat+heb+hin+hrv+hun+iku+ind+isl+ita+jav+jpn+kan+kat+kaz+khm+kir+kor+kur+lao+lat+lav+lit+mal+mar+mkd+mlt+mon+msa+mya+nep+nld+nor+ori+pan+pol+por+pus+ron+rus+san+sin+slk+slv+snd+spa+spa_old+sqi+srp+srp_latn+sun+swa+swe+syc+tam+tat+tel+tgk+tha+tir+ton+tur+uig+ukr+urd+uzb+vie+yid',
+    {
+
+                   // file,
+                   // 'eng+chi_sim+chi_tra+jpn+kor', // Support English, Chinese, Japanese, Korean
+                  //  {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                progressBar.style.width = `${Math.round(m.progress * 100)}%`;
+                                progressText.textContent = `Processing: ${Math.round(m.progress * 100)}%`;
+                            } else {
+                                progressText.textContent = m.status;
+                            }
+                        }
+                    }
+                ).then(({ data: { text } }) => {
+                    processingContainer.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                    
+                    if (text.trim().length > 0) {
+                        resultText.textContent = text;
+                        emptyResult.classList.add('hidden');
+                    } else {
+                        resultText.textContent = '';
+                        emptyResult.classList.remove('hidden');
+                    }
+                }).catch(err => {
+                    console.error(err);
+                    alert('Error processing image. Please try another image.');
+                    resetForm();
+                });
+            }
+
+            // Copy to clipboard
+            function copyToClipboard() {
+                const text = resultText.textContent;
+                if (!text) return;
+                
+                navigator.clipboard.writeText(text).then(() => {
+                    copyBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
+                    copyBtn.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<i class="fas fa-copy mr-1"></i> Copy Text';
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                });
+            }
+
+            // Download as TXT file
+            function downloadAsTxt() {
+                const text = resultText.textContent;
+                if (!text) return;
+                
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'extracted-text.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Reset form
+            function resetForm() {
+                fileInput.value = '';
+                resultText.textContent = '';
+                uploadContainer.classList.remove('hidden');
+                processingContainer.classList.add('hidden');
+                resultContainer.classList.add('hidden');
+                progressBar.style.width = '0%';
+            }
+        });
+    </script>
+</body>
+</html>

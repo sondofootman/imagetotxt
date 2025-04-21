@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Select OCR Language</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-sky-100 to-blue-200 min-h-screen flex flex-col items-center justify-center p-6 font-sans">
+
+  <div class="text-center mb-10">
+    <h1 class="text-4xl font-extrabold text-gray-800 mb-2">📖 OCR Language Picker</h1>
+    <p class="text-gray-600 text-lg">Choose your preferred language for text extraction</p>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-4xl px-4">
+    <a href="ocr-eng.html" class="group bg-gradient-to-br from-blue-400 to-blue-600 text-white py-4 px-6 rounded-2xl shadow-lg flex flex-col items-center justify-center hover:scale-105 transition transform">
+      <i class="fas fa-language text-3xl mb-2"></i>
+      <span class="font-semibold text-lg">English</span>
+    </a>
+    <a href="ocr-fas.html" class="group bg-gradient-to-br from-green-400 to-green-600 text-white py-4 px-6 rounded-2xl shadow-lg flex flex-col items-center justify-center hover:scale-105 transition transform">
+      <i class="fas fa-language text-3xl mb-2"></i>
+      <span class="font-semibold text-lg">Persian</span>
+    </a>
+    <a href="ocr-ara.html" class="group bg-gradient-to-br from-yellow-400 to-yellow-600 text-white py-4 px-6 rounded-2xl shadow-lg flex flex-col items-center justify-center hover:scale-105 transition transform">
+      <i class="fas fa-language text-3xl mb-2"></i>
+      <span class="font-semibold text-lg">Arabic</span>
+    </a>
+    <a href="ocr-jpn.html" class="group bg-gradient-to-br from-pink-400 to-pink-600 text-white py-4 px-6 rounded-2xl shadow-lg flex flex-col items-center justify-center hover:scale-105 transition transform">
+      <i class="fas fa-language text-3xl mb-2"></i>
+      <span class="font-semibold text-lg">Japanese</span>
+    </a>
+
+    <!-- Add more as needed -->
+  </div>
+
+  <footer class="mt-12 text-sm text-gray-500">
+    Powered by Tesseract.js & TailwindCSS · For Telegram OCR Bot 🤖
+  </footer>
+</body>
+</html>
