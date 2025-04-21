@@ -137,10 +137,8 @@
             </ul>
         </div>
     </div>
-
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elements
+        document.addEventListener('DOMContentLoaded', function () {
             const fileInput = document.getElementById('fileInput');
             const selectFileBtn = document.getElementById('selectFileBtn');
             const dropzone = document.getElementById('dropzone');
@@ -154,8 +152,7 @@
             const copyBtn = document.getElementById('copyBtn');
             const newImageBtn = document.getElementById('newImageBtn');
             const downloadTxtBtn = document.getElementById('downloadTxtBtn');
-
-            // Event listeners
+    
             selectFileBtn.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', handleFileSelect);
             dropzone.addEventListener('click', () => fileInput.click());
@@ -165,45 +162,57 @@
             copyBtn.addEventListener('click', copyToClipboard);
             newImageBtn.addEventListener('click', resetForm);
             downloadTxtBtn.addEventListener('click', downloadAsTxt);
-
-            // Handle file selection
+    
             function handleFileSelect(e) {
                 const file = e.target.files ? e.target.files[0] : e.dataTransfer.files[0];
                 if (!file) return;
-                
+    
                 if (!file.type.match('image.*')) {
-                    alert('Please select an image file');
+                    alert('Please select a valid image file.');
                     return;
                 }
-                
+    
+                if (file.size > 5 * 1024 * 1024) {
+                    alert("Warning: Large image. It might take longer to process or fail. Consider compressing or cropping it.");
+                }
+    
                 processImage(file);
             }
-
-            // Drag and drop handlers
+    
             function handleDragOver(e) {
                 e.preventDefault();
                 dropzone.classList.add('active');
             }
-
+    
             function handleDragLeave() {
                 dropzone.classList.remove('active');
             }
-
+    
             function handleDrop(e) {
                 e.preventDefault();
                 dropzone.classList.remove('active');
                 handleFileSelect(e);
             }
-
-            // Process image with Tesseract
+    
+            function upscaleImage(file, scale = 2, callback) {
+                const img = new Image();
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(callback);
+                };
+                img.src = URL.createObjectURL(file);
+            }
+    
             function processImage(file) {
                 uploadContainer.classList.add('hidden');
                 processingContainer.classList.remove('hidden');
-                
-                Tesseract.recognize(
-                    file,
-                    'fas',
-                    {
+    
+                upscaleImage(file, 2, (blob) => {
+                    Tesseract.recognize(blob, 'fas', {
                         logger: m => {
                             if (m.status === 'recognizing text') {
                                 progressBar.style.width = `${Math.round(m.progress * 100)}%`;
@@ -211,47 +220,49 @@
                             } else {
                                 progressText.textContent = m.status;
                             }
+                        },
+                        config: {
+                            tessedit_pageseg_mode: '3', // AUTO layout
+                            preserve_interword_spaces: '1'
                         }
-                    }
-                ).then(({ data: { text } }) => {
-                    processingContainer.classList.add('hidden');
-                    resultContainer.classList.remove('hidden');
-                    
-                    if (text.trim().length > 0) {
-                        resultText.textContent = text;
-                        emptyResult.classList.add('hidden');
-                    } else {
-                        resultText.textContent = '';
-                        emptyResult.classList.remove('hidden');
-                    }
-                }).catch(err => {
-                    console.error(err);
-                    alert('Error processing image. Please try another image.');
-                    resetForm();
+                    }).then(({ data: { text } }) => {
+                        processingContainer.classList.add('hidden');
+                        resultContainer.classList.remove('hidden');
+    
+                        if (text.trim().length > 0) {
+                            resultText.textContent = text;
+                            emptyResult.classList.add('hidden');
+                        } else {
+                            resultText.textContent = '';
+                            emptyResult.classList.remove('hidden');
+                        }
+                    }).catch(err => {
+                        console.error(err);
+                        alert('Error processing image. Please try another image.');
+                        resetForm();
+                    });
                 });
             }
-
-            // Copy to clipboard
+    
             function copyToClipboard() {
                 const text = resultText.textContent;
                 if (!text) return;
-                
+    
                 navigator.clipboard.writeText(text).then(() => {
                     copyBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
                     copyBtn.classList.add('copied');
-                    
+    
                     setTimeout(() => {
                         copyBtn.innerHTML = '<i class="fas fa-copy mr-1"></i> Copy Text';
                         copyBtn.classList.remove('copied');
                     }, 2000);
                 });
             }
-
-            // Download as TXT file
+    
             function downloadAsTxt() {
                 const text = resultText.textContent;
                 if (!text) return;
-                
+    
                 const blob = new Blob([text], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -262,8 +273,7 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             }
-
-            // Reset form
+    
             function resetForm() {
                 fileInput.value = '';
                 resultText.textContent = '';
@@ -274,5 +284,6 @@
             }
         });
     </script>
+    
 </body>
 </html>
