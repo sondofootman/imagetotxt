@@ -213,7 +213,7 @@
                 processingContainer.classList.remove('hidden');
     
                 upscaleImage(file, 2, (blob) => {
-                    Tesseract.recognize(blob, 'ara', {
+                    Tesseract.recognize(blob, 'fas+eng+ara+tur', {
                         logger: m => {
                             if (m.status === 'recognizing text') {
                                 progressBar.style.width = `${Math.round(m.progress * 100)}%`;
